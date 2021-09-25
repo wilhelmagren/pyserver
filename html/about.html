@@ -5,21 +5,78 @@
  	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<title>About</title>
+	<title>GymFeed</title>
 	<meta name="author" content="ulysses@bund">
 
-	<link rel="icon" href="../images/favicon.ico">
-	<link rel="stylesheet" href="../css/styles.css">
+	<link rel="icon" href="./images/favicon.ico">
+	
+	<style>
+		html {
+			font-family: "Verdana", Sans-serif !important;
+			background-color: #DBD9CE;
+		}	
+		
+		body.about {
+			background-color: #B8B5A5;
+			width: 650px;
+			margin: auto;
+			border: 4px #444444;
+		}
 
+		div.top_nav {
+			background-color: #57554C;
+			overflow: hidden;
+			width: 650px;
+			margin: auto;
+			border: 2px #444444;
+		}
+		
+		div.top_nav a {
+			float: left;
+			color: #f2f2f2;
+			text-align: center;
+			padding: 14px 16px;
+			text-decoration: none;
+			font-size: 17px;
+		}
+		
+		div.top_nav a:hover {
+			background-color: #B5AD8A;
+			color: white;
+		}
+		
+		div.top_nav a.active {
+			background-color: #9C967B;
+			color: white;
+		}
+		
+		div.welcome_msg {
+			background-color: #EDEBE1;
+			overflow: hidden;
+			width: 650px;
+			margin: auto;
+			text-align: center;
+		}
+
+		p.welcome_msg {
+			border: 20px #000000;
+		}
+
+	</style>
 </head>
 
-<body>
+<body class="about">
 	<div class="top_nav">
 		<a href="index.html">Home</a>
 		<a href="login.html">Login</a>
 		<a href="news.html">News</a>
 		<a class="active"href="about.html">About</a>
 	</div>
-	<h1>About GymFeed</h1>
+	<div class="about_msg">
+		<h1>About GymFeed</h1>
+		<p>GymFeed is an independently organized, managed and developed forum for fitness and gym enthusiast.<br>
+		Rest in RIP almighty Zyzz. We're all gonna make it brah.
+		</p>
+	</div>
 </body>
 </html>

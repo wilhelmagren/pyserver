@@ -8,12 +8,64 @@
 	<title>GymFeed</title>
 	<meta name="author" content="ulysses@bund">
 
-	<link rel="icon" href="../images/favicon.ico">
-	<link rel="stylesheet" href="../css/styles.css">
+	<link rel="icon" href="./images/favicon.ico">
+	
+	<style>
+		html {
+			font-family: "Verdana", Sans-serif !important;
+			background-color: #DBD9CE;
+		}	
+		
+		body.home {
+			background-color: #B8B5A5;
+			width: 650px;
+			margin: auto;
+			border: 4px #444444;
+		}
 
+		div.top_nav {
+			background-color: #57554C;
+			overflow: hidden;
+			width: 650px;
+			margin: auto;
+			border: 2px #444444;
+		}
+		
+		div.top_nav a {
+			float: left;
+			color: #f2f2f2;
+			text-align: center;
+			padding: 14px 16px;
+			text-decoration: none;
+			font-size: 17px;
+		}
+		
+		div.top_nav a:hover {
+			background-color: #B5AD8A;
+			color: white;
+		}
+		
+		div.top_nav a.active {
+			background-color: #9C967B;
+			color: white;
+		}
+		
+		div.welcome_msg {
+			background-color: #EDEBE1;
+			overflow: hidden;
+			width: 650px;
+			margin: auto;
+			text-align: center;
+		}
+
+		p.welcome_msg {
+			border: 20px #000000;
+		}
+
+	</style>
 </head>
 
-<body>
+<body class="home">
 	<div class="top_nav">
 		<a class="active" href="index.html">Home</a>
 		<a href="#login.html">Login</a>
@@ -23,8 +75,9 @@
 	<div class="welcome_msg">
 		<h1>Welcome to GymFeed!</h1>
 		<p class"welcome_msg">Hello and welcome to the GymFeed!<br>
-		This is a forum for all gym enthusiasts that want to connect with others, share their progress, and achieve the highest of gains. Feel free to create an account and join the community, or browse the latest gym related research over on News.
+		This is a forum for all gym enthusiasts that want to connect with others, share their progress, and achieve the highest of gains.<br>
+		Feel free to create an account and join the community, or browse the latest gym related research over on News.
 		</p>
-
+	</div>
 </body>
 </html>

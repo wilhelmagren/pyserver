@@ -9,6 +9,37 @@ CLOSING     = "[-] "
 
 
 class ClientThread:
+    """
+    !!! definition for class  ClientThread !!!
+    used heavily in HTTPServer for serving new client connections.
+    using threading library to spawn independent Threads based on each
+    new client request. threads are indexed from [0-numThreads] in 
+    HTTPServer and if the tid (thread id) attr would be negative in the
+    ClientThread something has gone wrong in the HTTPServer.
+
+    public  funcs:
+        $  start()                  =>  none
+        $  close()                  =>  none
+        $  handle_client()          =>  none
+
+    private funcs:
+        $  _spawn_thread()          =>  threading.Thread || none
+        $  _parse_request(string)   =>  string
+        $  _find_file(string)       =>  string
+        $  _find_file_r(string)     =>  string
+    
+    the initializer for ClientThread takes three mandatory arguments:
+        int tid         (thread id, given by HTTPServer creating the ClientThread)
+        socket clt      (client socket, assigned by socket library when connecting)
+        tuple addr      (client address, tuple of (string, string)=(IPv4 addr, port))
+    
+    valid dict kwargs keywords:
+        int recv_size   (number of bytes to read from client request)
+
+    TODO:   implement new class ,,RequestObj´´ based on client request, in order to
+            parse request and build response separately, as this is not specifically
+            relevant to the ClientThread object.
+    """
     def __init__(self, tid, clt, addr, **kwargs):
         self.tid, self.clt, self.addr = tid, clt, addr
         self.recv_size      = kwargs.get("recv_size", 1024)

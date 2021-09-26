@@ -1,11 +1,13 @@
 import os
 import time
 import socket
-import threading
+
+from .client_thread import ClientThread
 
 
 ERROR       = "[!]  ERROR:"
 WORKING     = "[*] "
+CLOSING     = "[-] "
 
 
 class HTTPServer:
@@ -21,6 +23,7 @@ class HTTPServer:
         self.verbose    = kwargs.get("verbose", False)
         self.serv_sock = self._initialize_socket()
 
+
     def _initialize_socket(self):
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -32,55 +35,47 @@ class HTTPServer:
             print(ERROR+" could not initialize socket binding to {}:{}, terminating...".format(self.host_addr, self.port))
             exit()
     
-    def _close_client(self, clt):
-        self.threads -= 1
-        clt.close()
+    
+    def _shutdown(self):
+        print(CLOSING+" closing socket ...")
+        self.serv_sock.close()
+        print(CLOSING+" done! thanks for using HTTPserver")
+        exit()
 
-    def _listen(self):
+
+    def _wait4accept(self):
+        clt, addr = self.serv_sock.accept()
+        print()
+        print(WORKING+" got connection, initializing new thread ...".format(addr))
+        return clt, addr
+
+
+    def _open_client(self, clt, addr):
+        self.threads += 1
+        clt.settimeout(self.timeout)
+        clt_thread = ClientThread(self.threads, clt, addr, recv_size=self.recv_size)
+        return clt_thread
+
+
+    def _close_client(self):
+        self.threads -= 1
+   
+
+    def listen(self):
         """
         Listen for incoming traffic on specified port, accept socket connections and 
         spawn new threads with target job .handle_client given client and address.
         """
         print(WORKING+" listening on opened port ... (backlog={})".format(self.backlog))
-        self.serv_sock.listen(self.backlog)  #Backlog=5, number of unaccepted connections the system allows
-        while True:
-            clt, addr = self.serv_sock.accept()
-            print("\n"+WORKING+" got connection, spawning new thread...")
-            clt.settimeout(self.timeout)
-            self.threads += 1
-            thread = threading.Thread(target=self._handle_client, args=(clt, addr, self.threads))
-            try:
-                thread.start()
-            except:
-                print(ERROR+" could not spawn thread to deal with client {} at addr {}, continuing".format(clt, addr))
-                self.threads -= 1
-                continue
-
-    def _handle_client(self, clt, addr, thrd):
-        """
-        Handle the client, work on implementing this for webpage.
-        """
-        print(WORKING+" thread={} handling client with addr={}".format(thrd, addr))
+        self.serv_sock.listen(self.backlog)
         while True:
             try:
-                req = clt.recv(self.recv_size)
-                if req:
-                    response = self._parse_request(req.decode(), thrd)
-                    response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<h1>Hello World</h1>"
-                    clt.sendall(response.encode())
-                    print(WORKING+" thread={} response sent".format(thrd))
-                    self._close_client(clt)
-                    return
-                else:
-                    print(ERROR+" client disconnected. closing connection on thread={}".format(thrd))
-                    self._close_client(clt)
-                    return
-            except:
-                print(WORKING+" thread={} got no data from addr={}".format(thrd, addr))
-                self._close_client(clt)
-                return
-
-    def _parse_request(self, req, thrd):
-        print(WORKING+" got request:{}".format(req)) if self.verbose else print(WORKING+" thread={} parsing request".format(thrd))
-        return 1
+                clt, addr = self._wait4accept()
+                clt_thread = self._open_client(clt, addr)
+                if clt_thread.alive:
+                    clt_thread.start()
+                    self._close_client()
+            except KeyboardInterrupt:
+                print("\n"+ERROR+" got keyboard interrupt. shutting down server ...")
+                self._shutdown()
 

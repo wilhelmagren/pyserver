@@ -19,5 +19,5 @@ PORT_TMP     = 80
 if __name__ == "__main__":
     #& Run server
     print(BANNER)
-    server = HTTPServer(HOST_TMP, PORT_TMP, backlog=1)
-    server._listen()
+    server = HTTPServer(HOST_TMP, PORT_TMP, backlog=5, verbose=True)
+    server.listen()

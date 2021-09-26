@@ -35,6 +35,7 @@ class ClientThread:
     
     valid dict kwargs keywords:
         int recv_size   (number of bytes to read from client request)
+        bool verbose    (enable/disable verbose mode)
 
     TODO:   implement new class ,,RequestObj´´ based on client request, in order to
             parse request and build response separately, as this is not specifically
@@ -43,6 +44,7 @@ class ClientThread:
     def __init__(self, tid, clt, addr, **kwargs):
         self.tid, self.clt, self.addr = tid, clt, addr
         self.recv_size      = kwargs.get("recv_size", 1024)
+        self.verbose        = kwargs.get("verbose", False)
         self.thread = self._spawn_thread()
         self.alive = False if not self.thread else True
 
@@ -54,8 +56,8 @@ class ClientThread:
             returns the created thread as an attribute to the ClientThread if 
             successful, otherwise return None and set alive attribute to False
 
-        >>>  self._spawn_thread()
-        >>>  threading.Thread if successfull else None
+        >>>  call:      ClientThread._spawn_thread()
+        >>>  OUTPUT:    threading.Thread || none
 
         !!! primarily called from func  self.__init__/4+
         """
@@ -74,8 +76,8 @@ class ClientThread:
             see threading library for more information on how threads
             are initialized, started, and terminated
 
-        >>>  self.start()
-        >>>  none
+        >>>  call:      ClientThread.start()
+        >>>  OUTPUT:    none
 
         !!! primarily called from func  HTTPServer.listen/1
         """
@@ -88,8 +90,8 @@ class ClientThread:
         func closes the client connection assigned to object
             attribtute self.clt. see socket library for details.
 
-        >>>  self.close()
-        >>>  none
+        >>>  call:      ClientThread.close()
+        >>>  OUTPUT:    none
 
         !!! primarily called from func  handle_client/1
         """
@@ -104,9 +106,9 @@ class ClientThread:
             according to threading library starts the execution of the target
             function bound to thread.
 
-        >>>  thread = threading.Thread(target=handle_client)
-        >>>  thread.start()
-        >>>  none
+        >>>  call:      thread = threading.Thread(target=handle_client)
+        >>>  call:      thread.start()
+        >>>  OUTPUT:    none
 
         !!! bound as target function for threads, indirectly called/executed
                 from func  start/1 in HTTPserver.listen/1
@@ -130,15 +132,19 @@ class ClientThread:
             sub directories. if the file is found, the path to it
             is returned as a string. not a file object.
 
-        >>>  self._find_file("index.html")
-        >>>  $PATH/html/index.html
+        >>>  call:      ClientThread._find_file("/favicon.ico")
+        >>>  OUTPUT:    "favicon.ico"
 
         !!! primarily called from func  _parse_request/2
         """
         curr_dir = os.getcwd()
+        
         if req_file == "/":
             return os.path.join(curr_dir, "html/index.html")
         
+        if req_file == "/favicon.ico":
+            return os.path.join(curr_dir, "favicon.ico")
+
         if ".html" not in req_file:
             req_file += ".html"
         
@@ -154,8 +160,8 @@ class ClientThread:
             needs to be changed since files can have no ending. look up how to verify
             if something is a directory or a file with <os>.
 
-        >>>  self._find_file_r("index.html", ["css", "html", "src"])
-        >>>  $PATH/html/index.html
+        >>>  call:      ClientThread._find_file_r("index.html", ["css", "html", "src"])
+        >>>  OUTPUT:    "html/index.html"
 
         TODO: change the list comprehension filter!!!
         !!! primarily called from func  _find_file/2
@@ -182,14 +188,15 @@ class ClientThread:
             types of response codes: (200, 404) and always returns
             ,,Content-Type: text/html´´ which may be changed.
 
-        >>>  self._parse_request("GET /index HTTP/1.1\n...")
-        >>>  "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<body>"
+        >>>  call:      ClientThread._parse_request("GET /index HTTP/1.1\n...")
+        >>>  OUTPUT:    "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<body>"
 
         TODO: change response code possibilities and Content-Type
         !!! primarily called from func  handle_client/1
         """
         lines = request.split("\n")
         (method, filepath, protocol) = lines[0].split(" ")
+        print(WORKING+" thread={} request: {} {} {}".format(self.tid, method, filepath, protocol)) if self.verbose else None
         found_file = self._find_file(filepath)
         response_code, response_code_msg = 404, "Not Found"
         response_contents = open(os.path.join("./html/", "404.html")).read() 

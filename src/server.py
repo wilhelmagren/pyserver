@@ -127,7 +127,7 @@ class HTTPServer:
         """
         self.threads += 1
         clt.settimeout(self.timeout)
-        clt_thread = ClientThread(self.threads, clt, addr, recv_size=self.recv_size)
+        clt_thread = ClientThread(self.threads, clt, addr, recv_size=self.recv_size, verbose=self.verbose)
         return clt_thread
 
 

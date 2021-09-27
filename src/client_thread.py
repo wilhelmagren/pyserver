@@ -2,6 +2,8 @@ import os
 import time
 import threading
 
+from .socket_buffer import SocketBuffer
+
 
 ERROR       = "[!]  ERROR:"
 WORKING     = "[*] "
@@ -95,6 +97,7 @@ class ClientThread:
 
         !!! primarily called from func  handle_client/1
         """
+        print(WORKING+" thread={} closing ...".format(self.tid))
         self.clt.close()
 
 
@@ -114,16 +117,44 @@ class ClientThread:
                 from func  start/1 in HTTPserver.listen/1
         """
         print(WORKING+" thread={} handling client ...".format(self.tid))
-        request = self.clt.recv(self.recv_size)
-        if request:
-            response = self._parse_request(request.decode())
-            self.clt.sendall(response.encode())
-            print(WORKING+" thread={} response sent".format(self.tid))
+        client_buffer = SocketBuffer(self.tid, self.clt, self.addr, self.recv_size)
+        request = client_buffer.get_data()
+        response, filetype = self._parse_request(request)
+        if filetype == "text":
+            client_buffer.put_utf8(response)
+        elif filetype == "image":
+            print("requesting image file type")
+            client_buffer.put_bytes(response)
         else:
-            print(ERROR+" no request from client. closing connection and thread={}".format(self.tid))
+            print(ERROR+" unknown requested file type. denying request and closing connection")
         self.close()
+        #while True:
+        #    request = self.clt.recv(self.recv_size)
+        #    if not request:
+        #        print(ERROR+" no more client data. closing connection and thread={}".format(self.tid))
+        #        break
+        #    print(WORKING+" thread={} got client request".format(self.tid))
+        #    response += self._parse_request(request.decode())
+        #self.clt.sendall(reseponse.encode() + b"\x00")
+        #print(WORKING+" thread={} response sent!".format(self.tid))
+        #self.close()
 
     
+    def _file_type(self, req_file):
+        if req_file == "/":
+            return "text"
+        web_endings     = [".html", ".css", ".js"]
+        image_endings   = [".ico", ".jpg", ".jpeg", ".png", ".webp", ".svg"]
+
+        for ending in web_endings:
+            if ending in req_file:
+                return "text"
+        for ending in image_endings:
+            if ending in req_file:
+                return "image"
+        return "text"
+
+
     def _find_file(self, req_file):
         """
         @spec  _find_file(ClientThread, string)  =>  string
@@ -144,11 +175,16 @@ class ClientThread:
         
         if req_file == "/favicon.ico":
             return os.path.join(curr_dir, "favicon.ico")
-
-        if ".html" not in req_file:
+        
+        f_endings = [".html", ".ico", ".png", ".jpg", ".webp"]
+        if "." not in req_file:
             req_file += ".html"
+
+        if "/" not in req_file:
+            req_file.insert(0, "/")
         
         path_to_file = self._find_file_r(req_file[1:], curr_dir)
+        # print("req_file: "+req_file+"\nPATH_TO_FILE: "+path_to_file)
         return path_to_file
  
     
@@ -197,17 +233,43 @@ class ClientThread:
         lines = request.split("\n")
         (method, filepath, protocol) = lines[0].split(" ")
         print(WORKING+" thread={} request: {} {} {}".format(self.tid, method, filepath, protocol)) if self.verbose else None
+
+        req_file_type = self._file_type(filepath)
         found_file = self._find_file(filepath)
+        
         response_code, response_code_msg = 404, "Not Found"
         response_contents = open(os.path.join("./html/", "404.html")).read() 
+        response =      """{} {} {}
+                           Content-Type: text/html
+                        """
 
         if found_file:
             response_code, response_code_msg = 200, "OK"
-            response_contents = open(found_file).read()
+            print("!)#(!)#(!)(#!)#/)!(#)!(#)!"+found_file)
+            print("(!#)()!(#)!(#)!(#)!()#!(#)!(#)!"+req_file_type)
+            if req_file_type == "image":
+                response = response.format(protocol, response_code, response_code_msg)
+                response += "\n\n"
+                response = response.encode()
+                print(type(response))
+                file_contents = open(found_file, "rb").read()
+                print(type(file_contents))
+                return response+file_contents, req_file_type
+            response_contents = open(found_file, "r").read()
 
-        response =   """{} {} {}
-                        Content-Type: text/html
 
-                        {}""".format(protocol, response_code, response_code_msg, response_contents)
-        return response
+        response = response.format(protocol, response_code, response_code_msg) + "\n\n{}".format(response_contents)
+        return response, req_file_type
+
+
+
+
+
+
+
+
+
+
+
+
 

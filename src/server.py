@@ -47,7 +47,7 @@ class HTTPServer:
         self.host_addr, self.port, self.threads = host_addr, port, -1
         self.recv_size  = kwargs.get("recv_size", 1024)
         self.backlog    = kwargs.get("backlog", 5)
-        self.timeout    = kwargs.get("timeout", 60)
+        self.timeout    = kwargs.get("timeout", 30)
         self.verbose    = kwargs.get("verbose", False)
         self.serv_sock = self._initialize_socket()
 

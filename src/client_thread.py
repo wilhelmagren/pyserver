@@ -47,8 +47,8 @@ class ClientThread:
         self.tid, self.clt, self.addr = tid, clt, addr
         self.recv_size      = kwargs.get("recv_size", 1024)
         self.verbose        = kwargs.get("verbose", False)
-        self.thread = self._spawn_thread()
-        self.alive = False if not self.thread else True
+        self.thread         = self._spawn_thread()
+        self.alive          = False if not self.thread else True
 
 
     def _spawn_thread(self):
@@ -70,6 +70,7 @@ class ClientThread:
         except:
             print(ERROR+" could not spawn thread for client at addr={}, continuing ...".format(self.addr))
         return None
+
 
     def start(self):
         """
@@ -119,27 +120,17 @@ class ClientThread:
         print(WORKING+" thread={} handling client ...".format(self.tid))
         client_buffer = SocketBuffer(self.tid, self.clt, self.addr, self.recv_size)
         request = client_buffer.get_data()
+        time.sleep(1)
         response, filetype = self._parse_request(request)
         if filetype == "text":
             client_buffer.put_utf8(response)
         elif filetype == "image":
-            print("requesting image file type")
             client_buffer.put_bytes(response)
         else:
             print(ERROR+" unknown requested file type. denying request and closing connection")
         self.close()
-        #while True:
-        #    request = self.clt.recv(self.recv_size)
-        #    if not request:
-        #        print(ERROR+" no more client data. closing connection and thread={}".format(self.tid))
-        #        break
-        #    print(WORKING+" thread={} got client request".format(self.tid))
-        #    response += self._parse_request(request.decode())
-        #self.clt.sendall(reseponse.encode() + b"\x00")
-        #print(WORKING+" thread={} response sent!".format(self.tid))
-        #self.close()
-
     
+
     def _file_type(self, req_file):
         if req_file == "/":
             return "text"
@@ -182,9 +173,11 @@ class ClientThread:
 
         if "/" not in req_file:
             req_file.insert(0, "/")
-        
+       
+        if "/images/" in req_file:
+            req_file = req_file[7:]
+
         path_to_file = self._find_file_r(req_file[1:], curr_dir)
-        # print("req_file: "+req_file+"\nPATH_TO_FILE: "+path_to_file)
         return path_to_file
  
     
@@ -245,31 +238,15 @@ class ClientThread:
 
         if found_file:
             response_code, response_code_msg = 200, "OK"
-            print("!)#(!)#(!)(#!)#/)!(#)!(#)!"+found_file)
-            print("(!#)()!(#)!(#)!(#)!()#!(#)!(#)!"+req_file_type)
             if req_file_type == "image":
                 response = response.format(protocol, response_code, response_code_msg)
                 response += "\n\n"
                 response = response.encode()
-                print(type(response))
                 file_contents = open(found_file, "rb").read()
-                print(type(file_contents))
                 return response+file_contents, req_file_type
             response_contents = open(found_file, "r").read()
 
 
         response = response.format(protocol, response_code, response_code_msg) + "\n\n{}".format(response_contents)
         return response, req_file_type
-
-
-
-
-
-
-
-
-
-
-
-
 

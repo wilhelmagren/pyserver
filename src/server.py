@@ -1,6 +1,7 @@
 import os
 import time
 import socket
+import threading
 
 from .client_thread import ClientThread
 
@@ -44,7 +45,7 @@ class HTTPServer:
     TODO:   debug threading to see if it actually works xD
     """
     def __init__(self, host_addr, port, **kwargs) -> None:
-        self.host_addr, self.port, self.threads = host_addr, port, -1
+        self.host_addr, self.port, self.threads = host_addr, port, threading.active_count()
         self.recv_size  = kwargs.get("recv_size", 1024)
         self.backlog    = kwargs.get("backlog", 5)
         self.timeout    = kwargs.get("timeout", 30)
@@ -143,7 +144,7 @@ class HTTPServer:
 
         !!! primarily called from func  listen/1 after closed connection
         """
-        self.threads -= 1
+        self.threads = threading.active_count()
    
 
     def listen(self):

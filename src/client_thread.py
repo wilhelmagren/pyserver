@@ -118,16 +118,19 @@ class ClientThread:
                 from func  start/1 in HTTPserver.listen/1
         """
         print(WORKING+" thread={} handling client ...".format(self.tid))
-        client_buffer = SocketBuffer(self.tid, self.clt, self.addr, self.recv_size)
-        request = client_buffer.get_data()
-        time.sleep(1)
-        response, filetype = self._parse_request(request)
-        if filetype == "text":
-            client_buffer.put_utf8(response)
-        elif filetype == "image":
-            client_buffer.put_bytes(response)
-        else:
-            print(ERROR+" unknown requested file type. denying request and closing connection")
+        try:
+           client_buffer = SocketBuffer(self.tid, self.clt, self.addr, self.recv_size)
+           request = client_buffer.get_data()
+           time.sleep(1)
+           response, filetype = self._parse_request(request)
+           if filetype == "text":
+               client_buffer.put_utf8(response)
+           elif filetype == "image":
+               client_buffer.put_bytes(response)
+           else:
+               print(ERROR+" unknown requested file type. denying request and closing connection")
+        except socket.timeout as e:
+            print(ERROR+" thread={} request timed out: {}".format(e))
         self.close()
     
 

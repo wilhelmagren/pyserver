@@ -38,6 +38,7 @@ if __name__ == "__main__":
     for t_idx, t in enumerate(threads):
         print(WORKING+" thread={} starting ...".format(t_idx))
         t.start()
+        t.join()
 
     print(CLOSING+" done! how did it go?")
 

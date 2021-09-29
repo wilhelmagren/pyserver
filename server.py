@@ -1,7 +1,11 @@
 #!/bin/python3
-from src.server import HTTPServer
+import sys
+from src.HTTPServer import HTTPServer
 
 
+ERROR       = "[!]  ERROR:"
+WORKING     = "[*]  "
+CLOSING     = "[-]  "
 BANNER      = """
          __ _________________                          
         / // /_  __/_  __/ _ \___ ___ _____  _____ ____
@@ -12,12 +16,19 @@ BANNER      = """
                           rm -rf
 """
 
-HOST_TMP     = "192.168.0.105"
-PORT_TMP     = 80
-
 
 if __name__ == "__main__":
-    #& Run server
-    print(BANNER)
-    server = HTTPServer(HOST_TMP, PORT_TMP, backlog=5, recv_size=8192, verbose=True)
+    HOST_ADDR = "127.0.0.1"
+    HOST_PORT =  80
+    try:
+        HOST_ADDR = sys.argv[1]
+        HOST_PORT = sys.argv[2]
+    except:
+        print(ERROR+" please specify host address and port. run program like:\n$ sudo ./server.py <host_addr> <host_port>")
+        exit()
+    
+    print(BANNER)  # You got to have a banner!
+
+    server = HTTPServer(str(HOST_ADDR), int(HOST_PORT), backlog=5, recv_size=8192, verbose=True)
     server.listen()
+

@@ -3,7 +3,7 @@ import time
 import socket
 import threading
 
-from .client_thread import ClientThread
+from .SocketThread import SocketThread
 
 
 ERROR       = "[!]  ERROR:"
@@ -15,11 +15,11 @@ class HTTPServer:
     """
     !!! definition for class  HTTPserver !!!
     simple http server used for handling simple GET requests. yes, it's simple.
-    ,,multi´´-threaded using the threading library and class ClientThread.
+    ,,multi´´-threaded using the threading library and class SocketThread.
     connections implemented using the socket standard library for Python3.8
     the server is set up on a given host IPv4 address and port, and then 
     listens for incoming traffic. if multiple connections are made simultaneously
-    multiple ClientThreads will be initialized to respond to requests.
+    multiple SocketThreads will be initialized to respond to requests.
     the server is currently run by executing file server.py in root folder
 
     public  funcs:
@@ -29,7 +29,7 @@ class HTTPServer:
         $ _initialize_socket()                  =>  socket.socket || exit()
         $ _shutdown()                           =>  exit()
         $ _wait4accept()                        =>  (socket.socket, tuple)
-        $ _open_client(socket.socket, tuple)    =>  ClientThread
+        $ _open_client(socket.socket, tuple)    =>  SocketThread
         $ _close_client()                       =>  none
 
     the initializer for HTTPServer takes two mandatory arguments:
@@ -83,7 +83,7 @@ class HTTPServer:
         func disconnects all current client connections and closes the open socket.
             currently only called whenever host/user initiates C-c, KeyboardInterrupt.
 
-        TODO: implement cleaning of tmp files and correct closing of all ClientThreads.
+        TODO: implement cleaning of tmp files and correct closing of all SocketThreads.
 
         >>>  call:      HTTPServer._shutdown()
         >>>  OUTPUT:    exit()
@@ -101,7 +101,7 @@ class HTTPServer:
         @spec  _wait4accept(HTTPServer)  =>  (socket.socket, tuple)
         func waits for new connection to server socket and then accepts it.
             the accept() returns a tuple with socket.socket and IPv4 addr, port.
-            func returns the tuple pair in order to create new ClientThread.
+            func returns the tuple pair in order to create new SocketThread.
 
         >>>  call:      HTTPServer._wait4accept()
         >>>  OUTPUT:    (socket.socket, ('192.168.0.1', 80))
@@ -109,27 +109,26 @@ class HTTPServer:
         !!! primarily called from func  listen/1
         """
         clt, addr = self.serv_sock.accept()
-        print("\n"+WORKING+" got connection, initializing new thread ...".format(addr))
         return clt, addr
 
 
     def _open_client(self, clt, addr):
         """
-        @spec  _open_client(HTTPServer, socket.socket, tuple)  =>  ClientThread
+        @spec  _open_client(HTTPServer, socket.socket, tuple)  =>  SocketThread
         func increments number of threads for HTTPServer, sets timeout for 
             client connection to host specified int, initializes a new
-            ClientThread object with given client socket.socket and addr
-            tuple IPv4 and port number. returns the ClientThread
+            SocketThread object with given client socket.socket and addr
+            tuple IPv4 and port number. returns the SocketThread
 
         >>>  call:      HTTPServer._open_client(socket.socket, ('192.168.0.1',15861))
-        >>>  OUTPUT:    ClientThread
+        >>>  OUTPUT:    SocketThread
 
         !!! primarily called from func  listen/1 when accepting new connection from client
         """
         self.threads += 1
         clt.settimeout(self.timeout)
-        clt_thread = ClientThread(self.threads, clt, addr, recv_size=self.recv_size, verbose=self.verbose)
-        return clt_thread
+        sock_t = SocketThread(self.threads, clt, addr, recv_size=self.recv_size, verbose=self.verbose)
+        return sock_t
 
 
     def _close_client(self):
@@ -166,9 +165,9 @@ class HTTPServer:
         while True:
             try:
                 clt, addr = self._wait4accept()
-                clt_thread = self._open_client(clt, addr)
-                if clt_thread.alive:
-                    clt_thread.start()
+                sock_t = self._open_client(clt, addr)
+                if sock_t.alive:
+                    sock_t.start()
                     self._close_client()
             except KeyboardInterrupt:
                 print("\n"+ERROR+" got keyboard interrupt. shutting down server ...")

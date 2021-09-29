@@ -1,6 +1,6 @@
 # Simple HTTPServer written for Python3.x
 
-This repository contains code for a multi-threaded http-server written using the standard socket library found in Python.<br>
+This repository contains code for a multi-threaded http-server written using the standard socket library found in Python.
 The only requirement is that you run the code with a Python version ```>=3.0```, as it does not support Python2.x<br>
 
 ## Cloning and setup

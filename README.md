@@ -1,3 +1,4 @@
-# Simple HTTPServer written in Python3.8.10+
+# Simple HTTPServer written for Python3.8
 
-Author: ulysses@bund
+Author: Wilhelm Ågren, wagren@kth.se
+License: MIT

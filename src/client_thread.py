@@ -1,5 +1,6 @@
 import os
 import time
+import socket
 import threading
 
 from .socket_buffer import SocketBuffer
@@ -121,7 +122,6 @@ class ClientThread:
         try:
            client_buffer = SocketBuffer(self.tid, self.clt, self.addr, self.recv_size)
            request = client_buffer.get_data()
-           time.sleep(1)
            response, filetype = self._parse_request(request)
            if filetype == "text":
                client_buffer.put_utf8(response)
